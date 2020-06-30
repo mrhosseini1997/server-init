@@ -3,7 +3,7 @@ Ansible role to initialize linux servers
 
 # tasks
 
-- add an admin group and user
+- adding an admin group and user
 - adding ssh key 
 - sshd service basic hardening
 - apt repo settings
