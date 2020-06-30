@@ -14,4 +14,4 @@ htop , vim , sysstat , ifupdown , iperf3 , axel , wget ...
 - setting correct DNS Servers
 
 # !!!
-it hasn't been completed yet  ! 
+it hasn't yet been completed   ! 
