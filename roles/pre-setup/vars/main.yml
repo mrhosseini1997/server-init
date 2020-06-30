@@ -1,0 +1,17 @@
+---
+ssh_group_admin: admin
+my_dns: 8.8.8.8
+my_hostname: webserver-best
+
+user_list:
+ - name: "Mohammad Reza Hosseini" 
+   username: mohammad
+   group: admin
+   sudoer: 1
+   present: absent
+ - name: "Ali Reza"
+   username: ali
+   group: admin
+   sudoer: 1
+   present: present
+
