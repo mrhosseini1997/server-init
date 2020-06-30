@@ -12,3 +12,6 @@ Ansible role to initialize linux servers
 htop , vim , sysstat , ifupdown , iperf3 , axel , wget ...
 - customized bash profile
 - setting correct DNS Servers
+
+# !!!
+it hasn't been completed yet  ! 
