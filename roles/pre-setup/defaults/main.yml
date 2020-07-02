@@ -1,0 +1,7 @@
+---
+hostname_task: false
+fixdns_task: false
+docker_task: false
+user_task: false
+packageandupdate_task: false
+aptsettings_tasks: false
