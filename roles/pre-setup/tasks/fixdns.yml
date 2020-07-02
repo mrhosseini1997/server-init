@@ -1,0 +1,7 @@
+---
+- name: check nameserver exist 
+  lineinfile:
+   path: /etc/resolv.conf
+   regexp: "^nameserver {{ my_dns }}"
+   line: nameserver {{ my_dns }}
+  become: true

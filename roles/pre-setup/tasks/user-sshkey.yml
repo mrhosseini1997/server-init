@@ -1,0 +1,26 @@
+---
+- name: adding admin group
+  group: name={{ ssh_group_admin }} state=present
+
+- name: adding users and groups
+  user:
+   name: "{{ item.username }}"
+   groups: "{{ ssh_group_admin }}"
+   state: "{{ item.present }}"
+   shell: /bin/bash
+   remove: yes 
+  with_items: "{{ user_list }}"
+
+- name: adding ssh keys
+  authorized_key:
+   user: "{{ item.username }}"
+   key: "{{ lookup('file', 'sshkeys/' + item.username + '.key.pub') }}"
+  with_items: "{{ user_list }}"
+  when: item.present == "present"
+
+- name: adding admin group to sudoers
+  lineinfile:
+   dest: "/etc/sudoers"
+   state: "present"
+   regexp: "^%{{ ssh_group_admin }}"
+   line: "%{{ ssh_group_admin }} ALL=(ALL) NOPASSWD: ALL"

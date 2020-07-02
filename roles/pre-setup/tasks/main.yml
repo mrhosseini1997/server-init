@@ -1,152 +1,25 @@
 ---
-###################################################
-- name: adding admin group
-  group: name={{ ssh_group_admin }} state=present
-  tags: [useradd]
-- name: adding users and groups
-  user:
-   name: "{{ item.username }}"
-   groups: "{{ ssh_group_admin }}"
-   state: "{{ item.present }}"
-   shell: /bin/bash
-   remove: yes 
-  with_items: "{{ user_list }}"
-  tags: [useradd]
-- name: adding ssh keys
-  authorized_key:
-   user: "{{ item.username }}"
-   key: "{{ lookup('file', 'sshkeys/' + item.username + '.key.pub') }}"
-  with_items: "{{ user_list }}"
-  when: item.present == "present"
-  tags: [useradd]
-- name: adding admin group to sudoers
-  lineinfile:
-   dest: "/etc/sudoers"
-   state: "present"
-   regexp: "^%{{ ssh_group_admin }}"
-   line: "%{{ ssh_group_admin }} ALL=(ALL) NOPASSWD: ALL"
-  tags: [useradd]
-##################################################
-#making sure that dns works properly!
-- name: check nameserver exist 
-  lineinfile:
-   path: /etc/resolv.conf
-   regexp: "^nameserver {{ my_dns }}"
-   line: nameserver {{ my_dns }}
-  become: true
-  tags: [FIXDNS]
-###################################################
-- name: setting up the repository 
-  template: src=sources.list.iran.j2 dest=/etc/apt/sources.list backup=yes
-  tags: [aptrepo]
-- name: update cache and upgrade current packages
-  apt: update_cache=yes name="*" state=latest 
-  tags: [aptupdate]
-- name: installing neccesary packages
-  apt:
-   pkg:
-   - htop
-   - vim
-   - screen
-   - iperf3
-   - iperf
-   - axel
-   - wget
-   - git
-   - tcpdump
-   - traceroute
-   - mtr
-   - iftop
-   - sysstat
-   - software-properties-common
-   - apt-transport-https
-   - ifupdown
-   - curl
-   state: latest
-  tags: [aptpkg] 
-####################################################
-- name: setting up the hostname
-  shell: "hostnamectl set-hostname {{ inventory_hostname }}"
-  become: true
-  tags: [hostname]
-- name: add myself to host file
-  lineinfile:
-   dest: /etc/hosts
-   regexp: '^127\.0\.0\.1[ \t]+localhost'
-   line: '127.0.0.1 localhost {{ inventory_hostname }}'
-   state: present
-  tags: [hostname]
-- name: cloud init hostname config - if exist
-  stat: path=/etc/cloud/cloud.cfg
-  register: cinit_exist
-  tags: [hostname]
-- name: cloud init hostname config
-  lineinfile:
-   path: /etc/cloud/cloud.cfg
-   regexp: '^preserve_hostname'
-   line: "preserve_hostname: true"
-   state: present
-  when: cinit_exist.stat.exists
-  tags: [hostname]
-#####################################################
-- name: installing docker prereq
-  apt: name={{ item }} state=latest update_cache=yes cache_valid_time=300
-  loop:
-   - apt-transport-https
-   - ca-certificates
-   - gnupg-agent
-   - software-properties-common
-   - curl
-  tags: [dockerp]
-- name: set shecan
-  template: src=shecan.j2 dest=/etc/resolv.conf backup=yes
-  tags: [shecan]
+- name: user and ssk key settings
+  include: user-sshkey.yml
+  tags: [usersshkey]
 
-- name: add docker repo | add key
-  apt_key: url=https://download.docker.com/linux/ubuntu/gpg state=present
-  tags: [docker]
-- name: what is the ubuntu release name
-  shell: lsb_release -cs
-  register: os_release
-  tags: [docker]
-- name: add docker repo
-  apt_repository: repo="deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ os_release.stdout }} stable" state=present
-  tags: [docker]
+- name: setting the hostname
+  include: hostname.yml
+  tags: [hostname]
+
+- name: fixing the dns resolution
+  include: fixdns.yml
+  tags: [fixdns]
+
+- name: apt repo settings
+  include: apt-setting.yml
+  tags: [aptrepo]
+
+- name: upgrading packages and installing neccessary things
+  include: pkgs.yml
+  tags: [upgrade]
 
 - name: installing docker
-  apt: name={{ item }} state=latest update_cache=yes
-  loop:
-   - docker-ce
-   - docker-ce-cli
-   - containerd.io
+  include: docker.yml
   tags: [docker]
-
-- name: add admin users to group docker
-  user: name={{ item.username }} groups=docker append=yes
-  with_items: "{{ user_list }}"
-  when: item.present == "present"
-  tags: [useradd]
-
-- name: enable and start docker service
-  service: name=docker state=started enabled=yes
-  tags: [docker]
-
-- name: add docker registery
-  template: src=docker-registery.j2 dest=/etc/docker/daemon.json backup=yes
-  notify: restart docker
-  tags: [adddockerreg]
-########################################################
-
-- name: installing docker compose
-  get_url:
-   url: https://github.com/docker/compose/releases/download/1.26.0/docker-compose-Linux-x86_64
-   dest: /usr/local/bin/docker-compose
-   mode: u+x,g+x,o+x
-  tags: [dockercompose]
-- name: crearing a symbolic link
-  file:
-   src: "/usr/local/bin/docker-compose"
-   dest: "/usr/bin/docker-compose"
-   state: link
-  tags: [dockercompose]
 

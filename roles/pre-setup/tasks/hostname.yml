@@ -1,0 +1,23 @@
+---
+- name: setting up the hostname
+  shell: "hostnamectl set-hostname {{ inventory_hostname }}"
+  become: true
+
+- name: add myself to host file
+  lineinfile:
+   dest: /etc/hosts
+   regexp: '^127\.0\.0\.1[ \t]+localhost'
+   line: '127.0.0.1 localhost {{ inventory_hostname }}'
+   state: present
+
+- name: cloud init hostname config - if exist
+  stat: path=/etc/cloud/cloud.cfg
+  register: cinit_exist
+
+- name: cloud init hostname config
+  lineinfile:
+   path: /etc/cloud/cloud.cfg
+   regexp: '^preserve_hostname'
+   line: "preserve_hostname: true"
+   state: present
+  when: cinit_exist.stat.exists

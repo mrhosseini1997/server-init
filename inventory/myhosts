@@ -2,9 +2,9 @@
 #wireguard servers
 
 [servers]
-node-1 ansible_user=ubuntu ansible_ssh_port=22
-node-2 ansible_user=ubuntu ansible_ssh_port=22
-node-3 ansible_user=ubuntu ansible_ssh_port=22
+ubuntu-test-1 ansible_user=ubuntu ansible_ssh_port=22
+ubuntu-test-2 ansible_user=ubuntu ansible_ssh_port=22
+
 
 
 #clients

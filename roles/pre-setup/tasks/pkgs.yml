@@ -1,0 +1,25 @@
+---
+- name: update cache and upgrade current packages
+  apt: update_cache=yes name="*" state=latest 
+
+- name: installing neccesary packages
+  apt:
+   pkg:
+   - htop
+   - vim
+   - screen
+   - iperf3
+   - iperf
+   - axel
+   - wget
+   - git
+   - tcpdump
+   - traceroute
+   - mtr
+   - iftop
+   - sysstat
+   - software-properties-common
+   - apt-transport-https
+   - ifupdown
+   - curl
+   state: latest

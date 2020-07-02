@@ -1,0 +1,60 @@
+---
+- name: installing docker prereq
+  apt: name={{ item }} state=latest update_cache=yes cache_valid_time=300
+  loop:
+   - apt-transport-https
+   - ca-certificates
+   - gnupg-agent
+   - software-properties-common
+   - curl
+
+- name: set shecan
+  template: src=shecan.j2 dest=/etc/resolv.conf backup=yes
+
+
+- name: add docker repo | add key
+  apt_key: url=https://download.docker.com/linux/ubuntu/gpg state=present
+
+- name: what is the ubuntu release name
+  shell: lsb_release -cs
+  register: os_release
+
+- name: add docker repo
+  apt_repository: repo="deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ os_release.stdout }} stable" state=present
+
+
+- name: installing docker
+  apt: name={{ item }} state=latest update_cache=yes
+  loop:
+   - docker-ce
+   - docker-ce-cli
+   - containerd.io
+
+
+- name: add admin users to group docker
+  user: name={{ item.username }} groups=docker append=yes
+  with_items: "{{ user_list }}"
+  when: item.present == "present"
+
+
+- name: enable and start docker service
+  service: name=docker state=started enabled=yes
+
+
+- name: add docker registery
+  template: src=docker-registery.j2 dest=/etc/docker/daemon.json backup=yes
+  notify: restart docker
+
+########################################################
+
+- name: installing docker compose
+  get_url:
+   url: https://github.com/docker/compose/releases/download/1.26.0/docker-compose-Linux-x86_64
+   dest: /usr/local/bin/docker-compose
+   mode: u+x,g+x,o+x
+
+- name: crearing a symbolic link
+  file:
+   src: "/usr/local/bin/docker-compose"
+   dest: "/usr/bin/docker-compose"
+   state: link
