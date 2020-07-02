@@ -1,25 +1,31 @@
 ---
 - name: user and ssk key settings
   include: user-sshkey.yml
+  when: user_task
   tags: [usersshkey]
 
 - name: setting the hostname
   include: hostname.yml
+  when: hostname_task
   tags: [hostname]
 
 - name: fixing the dns resolution
   include: fixdns.yml
+  when: fixdns_task
   tags: [fixdns]
 
 - name: apt repo settings
   include: apt-setting.yml
+  when: aptsettings_tasks
   tags: [aptrepo]
 
 - name: upgrading packages and installing neccessary things
   include: pkgs.yml
+  when: packageandupdate_task
   tags: [upgrade]
 
 - name: installing docker
   include: docker.yml
+  when: docker_task
   tags: [docker]
 
