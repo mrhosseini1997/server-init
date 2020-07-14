@@ -1,0 +1,27 @@
+- hosts: all
+  gather_facts: yes
+  handlers:
+   - name: restart sshd
+     service: name=sshd state=restarted
+  vars:
+    _ssh_port: 65422
+
+  tasks:
+   - name: basic ssh hardening
+     lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: "{{ item.regexp }}"
+      line: " {{ item.line }}"
+      state: present
+     loop:
+      - regexp: "^Port"
+        line: "Port {{ _ssh_port }}"
+      - regexp: "^PaswordAuthentication"
+        line: "PasswordAuthentication no"
+      - regexp: "^PermitRootLogin"
+        line: "PermitRootLogin no"
+     notify: restart sshd
+
+
+
+   
